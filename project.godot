@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 window/size/mode=2
 
+[autoload]
+
+Net="*res://net/net.tscn"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/func_godot/plugin.cfg")
