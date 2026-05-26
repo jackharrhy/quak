@@ -1,0 +1,8 @@
+services:
+  quak:
+    build: .
+    image: ghcr.io/jackharrhy/quak:latest
+    container_name: quak
+    restart: unless-stopped
+    ports:
+      - "27420:27420/udp"
