@@ -10,6 +10,24 @@
 
 **Reference:** [`docs/superpowers/specs/2026-05-26-multiplayer-networking-design.md`](../specs/2026-05-26-multiplayer-networking-design.md)
 
+## Tooling note for implementers
+
+Godot is **not on `$PATH`** on the maintainer's machine. Use `scripts/godot.sh` for every CLI invocation — it locates the Godot 4.6 binary in the macOS app bundle (or honors `$GODOT` env var, or falls back to `godot` on PATH for CI).
+
+Two smoke-test commands work for verifying scripts and scenes parse correctly without an interactive editor:
+
+```bash
+# Verifies the project loads: all .gd compiles, all imports resolve, exits 0 on success
+timeout 30 scripts/godot.sh --headless --quit --path .
+
+# Same but actually runs 5 frames, catching _ready() errors
+timeout 30 scripts/godot.sh --headless --quit-after 5 --path .
+```
+
+After every task that adds or modifies a `.gd` or `.tscn` file, run the second command and confirm it exits 0 with no error output (other than the version banner). If it doesn't, fix before committing.
+
+There is no `--check-only` lint mode that works on arbitrary scripts in Godot 4 — `--check-only` only validates `MainLoop`/`SceneTree` scripts. The `--quit-after` approach is the canonical headless smoke test.
+
 ---
 
 ## File Structure
@@ -1309,7 +1327,7 @@ echo "dist/" >> .gitignore
 
 ```bash
 mkdir -p dist
-godot --headless --export-release "Linux Dedicated Server" dist/quak-server
+scripts/godot.sh --headless --export-release "Linux Dedicated Server" dist/quak-server
 ```
 
 Expected: command exits 0; `ls -lh dist/quak-server` shows a binary ~50 MB. Don't commit the binary.
