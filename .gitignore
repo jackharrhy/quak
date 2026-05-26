@@ -8,3 +8,6 @@ tmp/
 
 maps/autosave/*
 !maps/autosave/.gdignore
+
+# Server export build output (produced by `godot --export-release`)
+dist/
