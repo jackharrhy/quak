@@ -3,20 +3,6 @@ name: Build & publish server image
 on:
   push:
     branches: [main]
-    paths:
-      - "**.gd"
-      - "**.tscn"
-      - "**.tres"
-      - "project.godot"
-      - "export_presets.cfg"
-      - "Dockerfile"
-      - ".dockerignore"
-      - ".github/workflows/server.yml"
-      - "addons/**"
-      - "scenes/**"
-      - "net/**"
-      - "maps/**"
-      - "trenchbroom/**"
   workflow_dispatch:
 
 jobs:
