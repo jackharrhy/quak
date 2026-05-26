@@ -1,41 +1,33 @@
-[gd_scene load_steps=3 format=3 uid="uid://e4y56weigecs"]
+[gd_scene format=3 uid="uid://e4y56weigecs"]
 
-[ext_resource type="Script" path="res://scenes/Player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://b3esx1i2qrrlj" path="res://scenes/Player.gd" id="1_player"]
 
-; Quake player hull (pmove.c:36-37):
-;   mins = (-16, -16, -24) qu, maxs = (16, 16, 32) qu  →  32 × 32 × 56 qu
-; At 1 qu = 0.038 m that's (1.216 × 1.216 × 2.128) m. The hull is axis-aligned
-; in Quake — it does NOT rotate with the player view — so a BoxShape3D is the
-; correct primitive. Jolt handles boxes more stably than the default physics
-; engine, which we're already using (see project.godot::physics/3d/physics_engine).
 [sub_resource type="BoxShape3D" id="BoxShape3D_player"]
 size = Vector3(1.216, 2.128, 1.216)
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_p0vlq"]
+
+[sub_resource type="Sky" id="Sky_v6fml"]
+sky_material = SubResource("ProceduralSkyMaterial_p0vlq")
+
+[sub_resource type="Environment" id="Environment_3li8b"]
+background_mode = 2
+sky = SubResource("Sky_v6fml")
+
 [node name="Player" type="CharacterBody3D" unique_id=376634704]
-; Quake floor cutoff is z-normal > 0.7 (pmove.c:156). 0.7 ≈ cos(45.57°),
-; so floor_max_angle is set to acos(0.7) radians ≈ 0.795398.
-floor_max_angle = 0.7953988
-; Snap to ground while walking — prevents the player from "flying off" the top
-; of small steps & slopes (pmove.c does an explicit downtrace for this).
-floor_snap_length = 0.5
-; Keep the planar speed when walking along/onto a wall, matching Quake's
-; PM_ClipVelocity behavior (we also call velocity.slide() after move_and_slide).
 floor_constant_speed = true
 floor_block_on_wall = false
+floor_max_angle = 0.7953988
+floor_snap_length = 0.5
 script = ExtResource("1_player")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-; The CharacterBody3D's origin matches Quake's pmove.origin, which sits 24 qu
-; above the feet and 32 qu below the top. The box collision shape is centered
-; on its own origin, so we offset it by (maxs.z + mins.z)/2 = +4 qu = +0.152 m
-; in Godot's +Y so the body's origin lands at Quake's origin.
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1030469407]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.152, 0)
 shape = SubResource("BoxShape3D_player")
 
-[node name="Head" type="Node3D" parent="."]
-; Default Quake view_ofs is +22 qu above origin → 0.836 m in Godot.
+[node name="Head" type="Node3D" parent="." unique_id=2036134321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.836, 0)
 
-[node name="Camera3D" type="Camera3D" parent="Head"]
-; Quake's default fov is 90.
-fov = 90.0
+[node name="Camera3D" type="Camera3D" parent="Head" unique_id=184049099]
+environment = SubResource("Environment_3li8b")
+fov = 74.0

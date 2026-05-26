@@ -15,6 +15,10 @@ run/main_scene="uid://eprldq88q18u"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[display]
+
+window/size/mode=2
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/func_godot/plugin.cfg")
@@ -49,11 +53,8 @@ jump={
 
 [physics]
 
-; sv_gravity 800 qu/s^2 * (1 qu / 0.038 m) ≈ 30.4 m/s^2. We keep this in
-; sync with Player.gd so any RigidBody3D physics objects use the same
-; tuned-for-game-feel gravity rather than Godot's default 9.8 m/s^2.
-3d/default_gravity=30.4
 3d/physics_engine="Jolt Physics"
+3d/default_gravity=30.4
 
 [rendering]
 

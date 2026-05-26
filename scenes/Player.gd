@@ -44,11 +44,17 @@ const QU_TO_M: float = 0.038
 ## instead of current speed, which is what makes you snap to a halt
 ## instead of asymptotically gliding to one.
 @export var stop_speed: float       = 100.0 * QU_TO_M    #  3.8  m/s
-## sv_accelerate. Higher = reach max_speed faster on the ground.
+## sv_accelerate. Used for BOTH ground and air accel in Quake 1 / QuakeWorld.
+## The sv_airaccelerate cvar exists (=0.7) but pmove.c:548 passes the regular
+## sv_accelerate (=10) to PM_AirAccelerate anyway — verified in WinQuake's
+## sv_user.c:220 and QW pmove.c:548. The air-strafe magic comes entirely from
+## the wishspeed cap (air_wishspeed_cap), not a small accel constant.
 @export var ground_accel: float     = 10.0
-## sv_airaccelerate. Famously small in Quake; this is what allows
-## air-strafing without giving you full air control.
-@export var air_accel: float        = 0.7
+## In real Quake this is unused for air movement (the engine passes the same
+## sv_accelerate = 10). Quake 3 / CPMA *did* introduce a separate
+## sv_airaccelerate that's actually used and is famously much smaller (~1.0).
+## Leave this at 10 for Q1 feel; drop to ~1 for Q3 / CPM feel.
+@export var air_accel: float        = 10.0
 ## sv_friction. Higher = stop sooner on the ground.
 @export var friction: float         = 4.0
 ## JumpButton (+270 qu/s vertical impulse).
@@ -59,7 +65,7 @@ const QU_TO_M: float = 0.038
 @export var air_wishspeed_cap: float = 30.0 * QU_TO_M    #  1.14 m/s
 
 @export_group("Look")
-@export var sensitivity: float = 0.05
+@export var sensitivity: float = 0.08
 
 # --- State ---
 var wish_dir: Vector3 = Vector3.ZERO
@@ -69,7 +75,7 @@ var wish_jump: bool = false
 
 
 func _ready() -> void:
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _input(event: InputEvent) -> void:
@@ -77,6 +83,33 @@ func _input(event: InputEvent) -> void:
 		_handle_camera_rotation(event)
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	elif event is InputEventMouseButton and event.pressed \
+			and Input.get_mouse_mode() == Input.MOUSE_MODE_VISIBLE:
+		# Click anywhere in the window to recapture after Escape.
+		_capture_mouse()
+
+
+func _notification(what: int) -> void:
+	# Re-capture the mouse when the OS gives focus back (alt-tab, click on
+	# title bar, etc.). Without this, the camera silently stops responding to
+	# the mouse after any focus change.
+	#
+	# We bounce through MOUSE_MODE_HIDDEN for one frame to work around a known
+	# Godot bug where MOUSE_MODE_CAPTURED set during the focus-in event can
+	# leave the mouse in a half-captured state, particularly when the cursor
+	# was outside the window when focus was lost.
+	# See: https://github.com/godotengine/godot/issues/84389
+	if what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		_capture_mouse()
+
+
+func _capture_mouse() -> void:
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		# Already captured; toggle through HIDDEN to clear any stuck state.
+		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
+		await get_tree().process_frame
+		await get_tree().process_frame
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _handle_camera_rotation(event: InputEventMouseMotion) -> void:
@@ -176,11 +209,22 @@ func _accelerate(dir: Vector3, wishspeed: float, accel: float, delta: float) -> 
 	velocity += dir * accel_speed
 
 
-# PM_AirAccelerate (pmove.c:412-434). Identical structure to PM_Accelerate
-# except the *target* is min(wishspeed, 30 qu/s) while the *acceleration
-# magnitude* still scales with the un-capped wishspeed. This asymmetry is
-# the magic that lets you keep gaining speed sideways forever as long as
-# you don't already have velocity in that direction.
+# PM_AirAccelerate (pmove.c:412-434, sv_user.c:207-226).
+#
+# Identical structure to PM_Accelerate except for ONE crucial difference:
+# the *target* is clamped to min(wishspeed, 30 qu/s) — the famous "magic 30" —
+# while the *acceleration magnitude* still scales with the un-capped
+# wishspeed. This asymmetry is what permits air-strafing & bhop: when you're
+# moving forward at maxspeed and strafe sideways, current_speed (the dot
+# product onto the new wishdir) is ~0, so add_speed = 30 qu/s of headroom
+# is available every frame, and accelspeed = 10 * 320 * dt = a huge nudge.
+# You convert turning-input into sideways speed that compounds with your
+# forward velocity, accelerating you past max_speed.
+#
+# Common mistake: passing `sv_airaccelerate` (=0.7) as accel here. That cvar
+# exists in QW but pmove.c:548 still passes sv_accelerate (=10). Using 0.7
+# kills air-strafing because accelspeed becomes 14× too small to ever
+# saturate the 30 qu/s add_speed budget.
 func _air_accelerate(dir: Vector3, wishspeed: float, accel: float, delta: float) -> void:
 	var wishspd: float = min(wishspeed, air_wishspeed_cap)
 	var current_speed: float = velocity.dot(dir)
