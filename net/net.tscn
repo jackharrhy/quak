@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3 uid="uid://b1net0000001"]
+
+[ext_resource type="Script" path="res://net/net.gd" id="1_net"]
+[ext_resource type="Script" path="res://net/server.gd" id="2_server"]
+[ext_resource type="Script" path="res://net/client.gd" id="3_client"]
+[ext_resource type="PackedScene" uid="uid://b1remoteplayer001" path="res://scenes/RemotePlayer.tscn" id="4_remote"]
+
+[node name="Net" type="Node"]
+script = ExtResource("1_net")
+
+[node name="Server" type="Node" parent="."]
+script = ExtResource("2_server")
+
+[node name="Client" type="Node" parent="."]
+script = ExtResource("3_client")
+
+[node name="Players" type="Node3D" parent="."]
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://scenes/RemotePlayer.tscn")
+spawn_path = NodePath("../Players")

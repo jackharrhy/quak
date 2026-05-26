@@ -12,12 +12,18 @@ config_version=5
 
 config/name="quak"
 run/main_scene="uid://eprldq88q18u"
+run/flush_stdout_on_print=true
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
 [display]
 
 window/size/mode=2
+
+[autoload]
+
+Net="*res://net/net.tscn"
+Toast="*res://net/toast.tscn"
 
 [editor_plugins]
 

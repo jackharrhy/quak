@@ -1,0 +1,51 @@
+[gd_scene load_steps=6 format=3 uid="uid://b1remoteplayer001"]
+
+[ext_resource type="Script" path="res://scenes/RemotePlayer.gd" id="1_remote"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_remote"]
+size = Vector3(1.216, 2.128, 1.216)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_remote"]
+radius = 0.608
+height = 2.128
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_remote"]
+albedo_color = Color(0.8, 0.3, 0.3, 1)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_remote"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation:y")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:head_pitch")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:player_name")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+
+[node name="RemotePlayer" type="CharacterBody3D"]
+script = ExtResource("1_remote")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.152, 0)
+shape = SubResource("BoxShape3D_remote")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.152, 0)
+mesh = SubResource("CapsuleMesh_remote")
+material_override = SubResource("StandardMaterial3D_remote")
+
+[node name="NameLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+text = "player"
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_interval = 0.05
+delta_interval = 0.05
+replication_config = SubResource("SceneReplicationConfig_remote")
