@@ -61,6 +61,9 @@ func _parse_cli_args() -> void:
 					i += 1
 			"--offline":
 				cli_force_offline = true
+			"--dedicated-server":
+				# Consumed by _has_cli_flag() in _ready(); no state to set here.
+				pass
 			_:
 				if a.begins_with("--"):
 					push_warning("[Net] unknown CLI flag: %s" % a)
