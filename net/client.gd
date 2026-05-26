@@ -3,14 +3,25 @@ extends Node
 ## central server with offline fallback.
 
 const CONNECT_TIMEOUT: float = 5.0
+const PLAYER_SCENE: PackedScene = preload("res://scenes/Player.tscn")
+
+# Where the server-controlled func_godot player entity was placed in the map.
+# We use this position when spawning the local Player in offline mode and as
+# a fallback for the online-swap case. Position is captured from main.tscn's
+# entity_1_player transform before that node was removed in Task 7.
+const SPAWN_POSITION: Vector3 = Vector3(0.25, 2.25, 6.25)
 
 var peer: ENetMultiplayerPeer
+
+@onready var spawner: MultiplayerSpawner = $"../PlayerSpawner"
+@onready var players: Node3D = $"../Players"
 
 
 func start() -> void:
 	if Net.cli_force_offline:
 		Net.is_offline = true
 		print("[Client] offline mode (forced via --offline)")
+		_spawn_local_offline_player()
 		return
 
 	peer = ENetMultiplayerPeer.new()
@@ -22,6 +33,7 @@ func start() -> void:
 	multiplayer.connected_to_server.connect(_on_connected)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	spawner.spawned.connect(_on_player_spawned)
 	print("[Client] connecting to %s:%d..." % [Net.cli_host, Net.cli_port])
 	# ENet's built-in connect timeout is ~30s, which is far too long for a UX
 	# that drops into offline mode on failure. Start our own deadline.
@@ -52,9 +64,41 @@ func _on_server_disconnected() -> void:
 	_fallback_to_offline("server disconnected mid-game")
 
 
+func _on_player_spawned(node: Node) -> void:
+	# The server spawned a RemotePlayer; if it's *our* peer ID, swap it
+	# for the full Player.tscn (with camera + input).
+	var my_id := multiplayer.get_unique_id()
+	if int(node.name) != my_id:
+		return
+	var node3d := node as Node3D
+	var pos: Vector3 = node3d.global_position if node3d != null else SPAWN_POSITION
+	var rot: Vector3 = node3d.rotation if node3d != null else Vector3.ZERO
+	var local: Node3D = PLAYER_SCENE.instantiate()
+	local.name = "Local_%d" % my_id
+	players.add_child(local)
+	local.global_position = pos
+	local.rotation = rot
+	# Remove the RemotePlayer that was meant to represent us locally.
+	node.queue_free()
+	print("[Client] swapped own RemotePlayer for local Player at %s" % pos)
+
+
 func _fallback_to_offline(reason: String) -> void:
 	print("[Client] %s; entering offline mode" % reason)
 	Net.is_offline = true
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer = null
 	peer = null
+	_spawn_local_offline_player()
+
+
+func _spawn_local_offline_player() -> void:
+	# In offline mode there's no server-spawned RemotePlayer to swap, so we
+	# just instantiate a Player directly. Guard against double-spawn.
+	if players.has_node("Local_Offline"):
+		return
+	var local: Node3D = PLAYER_SCENE.instantiate()
+	local.name = "Local_Offline"
+	players.add_child(local)
+	local.global_position = SPAWN_POSITION
+	print("[Client] spawned offline local Player at %s" % SPAWN_POSITION)

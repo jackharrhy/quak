@@ -4,7 +4,6 @@
 [ext_resource type="Resource" uid="uid://bkhxcqsquw1yg" path="res://addons/func_godot/func_godot_default_map_settings.tres" id="2_1bvp3"]
 [ext_resource type="Material" uid="uid://dcddy758e3jj3" path="res://trenchbroom/textures/stone.tres" id="3_lquwl"]
 [ext_resource type="Material" uid="uid://d3ju73u24cw4c" path="res://trenchbroom/textures/dark_wood_floor.tres" id="4_lquwl"]
-[ext_resource type="PackedScene" uid="uid://e4y56weigecs" path="res://scenes/Player.tscn" id="5_7mycd"]
 [ext_resource type="Material" uid="uid://bttvesq4cdbtt" path="res://trenchbroom/textures/green_wallpaper.tres" id="5_272bh"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_7mycd"]
@@ -341,9 +340,6 @@ shape = SubResource("ConvexPolygonShape3D_blkrb")
 
 [node name="entity_0_brush_46_collision_shape" type="CollisionShape3D" parent="FuncGodotMap/entity_0_worldspawn" unique_id=23087436]
 shape = SubResource("ConvexPolygonShape3D_abqjc")
-
-[node name="entity_1_player" parent="FuncGodotMap" unique_id=376634704 instance=ExtResource("5_7mycd")]
-transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 0.25, 2.25, 6.25)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=521450985]
 transform = Transform3D(0.7710137, -0.13532501, 0.6222741, -0.6368186, -0.1638417, 0.75340426, 0, -0.9771607, -0.21250167, 8.001792, 4.147899, 0)
