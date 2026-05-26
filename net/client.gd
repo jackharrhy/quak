@@ -4,6 +4,7 @@ extends Node
 
 const CONNECT_TIMEOUT: float = 5.0
 const PLAYER_SCENE: PackedScene = preload("res://scenes/Player.tscn")
+const SETTINGS_PATH := "user://settings.cfg"
 
 # Where the server-controlled func_godot player entity was placed in the map.
 # We use this position when spawning the local Player in offline mode and as
@@ -88,7 +89,9 @@ func _on_player_spawned(node: Node) -> void:
 	local.name = node_name
 	players.add_child(local)
 	local.global_position = SPAWN_POSITION
-	print("[Client] swapped own RemotePlayer for local Player at %s" % SPAWN_POSITION)
+	var chosen := await _load_or_prompt_name()
+	local.player_name = chosen
+	print("[Client] swapped own RemotePlayer for local Player at %s as '%s'" % [SPAWN_POSITION, chosen])
 
 
 func _fallback_to_offline(reason: String) -> void:
@@ -109,4 +112,43 @@ func _spawn_local_offline_player() -> void:
 	local.name = "Local_Offline"
 	players.add_child(local)
 	local.global_position = SPAWN_POSITION
-	print("[Client] spawned offline local Player at %s" % SPAWN_POSITION)
+	var chosen := await _load_or_prompt_name()
+	local.player_name = chosen
+	print("[Client] spawned offline local Player at %s as '%s'" % [SPAWN_POSITION, chosen])
+
+
+func _load_or_prompt_name() -> String:
+	# CLI override always wins.
+	if Net.cli_name != "":
+		return Net.cli_name
+	# Try saved config.
+	var cfg := ConfigFile.new()
+	if cfg.load(SETTINGS_PATH) == OK:
+		var saved: String = cfg.get_value("player", "name", "")
+		if saved != "":
+			return saved
+	# Prompt.
+	var name := await _prompt_for_name()
+	if name != "":
+		cfg.set_value("player", "name", name)
+		cfg.save(SETTINGS_PATH)
+	return name
+
+
+func _prompt_for_name() -> String:
+	var dlg := AcceptDialog.new()
+	dlg.title = "Pick a name"
+	dlg.dialog_hide_on_ok = true
+	var line := LineEdit.new()
+	line.placeholder_text = "Your name"
+	line.custom_minimum_size = Vector2(220, 0)
+	dlg.add_child(line)
+	dlg.register_text_enter(line)
+	get_tree().root.add_child(dlg)
+	dlg.popup_centered()
+	await dlg.confirmed
+	var name := line.text.strip_edges()
+	dlg.queue_free()
+	if name == "":
+		name = "Guest_%d" % (randi() % 9999)
+	return name
