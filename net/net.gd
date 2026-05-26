@@ -29,6 +29,7 @@ func _ready() -> void:
 	if OS.has_feature("dedicated_server") or _has_cli_flag("--dedicated-server"):
 		role = Role.SERVER
 		print("[Net] starting in SERVER role")
+		$Server.start()
 	else:
 		role = Role.CLIENT
 		print("[Net] starting in CLIENT role")
