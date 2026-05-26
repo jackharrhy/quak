@@ -70,17 +70,18 @@ func _on_player_spawned(node: Node) -> void:
 	var my_id := multiplayer.get_unique_id()
 	if int(node.name) != my_id:
 		return
-	var node3d := node as Node3D
-	var pos: Vector3 = node3d.global_position if node3d != null else SPAWN_POSITION
-	var rot: Vector3 = node3d.rotation if node3d != null else Vector3.ZERO
+	# We can't read position from the RemotePlayer: it's (0,0,0) at this
+	# point because the spawn payload doesn't carry state when the synchronizer's
+	# authority is the client peer (not the server). We use the canonical
+	# SPAWN_POSITION instead. Other peers will see us at (0,0,0) for ~50ms
+	# until the local Player's first sync tick replicates our position.
 	var local: Node3D = PLAYER_SCENE.instantiate()
 	local.name = "Local_%d" % my_id
 	players.add_child(local)
-	local.global_position = pos
-	local.rotation = rot
+	local.global_position = SPAWN_POSITION
 	# Remove the RemotePlayer that was meant to represent us locally.
 	node.queue_free()
-	print("[Client] swapped own RemotePlayer for local Player at %s" % pos)
+	print("[Client] swapped own RemotePlayer for local Player at %s" % SPAWN_POSITION)
 
 
 func _fallback_to_offline(reason: String) -> void:
