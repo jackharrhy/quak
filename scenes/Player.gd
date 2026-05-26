@@ -67,6 +67,12 @@ const QU_TO_M: float = 0.038
 @export_group("Look")
 @export var sensitivity: float = 0.08
 
+# Networked state. The local-player MultiplayerSynchronizer pushes these
+# to the server, which mirrors them to other peers. `head_pitch` is sampled
+# from $Head.rotation.x in _physics_process / mouse handling.
+@export var head_pitch: float = 0.0
+@export var player_name: String = ""
+
 # --- State ---
 var wish_dir: Vector3 = Vector3.ZERO
 var wish_jump: bool = false
@@ -76,6 +82,20 @@ var wish_jump: bool = false
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Only the owning peer should process input + camera. Client.gd sets the
+	# multiplayer authority when it instantiates Player.tscn in response to
+	# our own RemotePlayer spawn. In offline mode, Net.is_offline is true and
+	# we just run as the sole player.
+	if not Net.is_offline:
+		set_multiplayer_authority(multiplayer.get_unique_id())
+	# Defensive: if for some reason we're not the authority for this Player
+	# (double-spawn, network confusion), disable input/camera so we don't
+	# create a second active player.
+	if not Net.is_offline and not is_multiplayer_authority():
+		$Head/Camera3D.current = false
+		set_process(false)
+		set_physics_process(false)
+		set_process_input(false)
 
 
 func _input(event: InputEvent) -> void:
@@ -116,6 +136,7 @@ func _handle_camera_rotation(event: InputEventMouseMotion) -> void:
 	rotate_y(deg_to_rad(-event.relative.x * sensitivity))
 	head.rotate_x(deg_to_rad(-event.relative.y * sensitivity))
 	head.rotation.x = clamp(head.rotation.x, deg_to_rad(-89.0), deg_to_rad(89.0))
+	head_pitch = head.rotation.x
 
 
 func _physics_process(delta: float) -> void:

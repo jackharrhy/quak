@@ -75,12 +75,19 @@ func _on_player_spawned(node: Node) -> void:
 	# authority is the client peer (not the server). We use the canonical
 	# SPAWN_POSITION instead. Other peers will see us at (0,0,0) for ~50ms
 	# until the local Player's first sync tick replicates our position.
+	# Remove the RemotePlayer that was meant to represent us locally
+	# FIRST (using immediate free), so we can reuse its node name. Keeping
+	# the same node name (peer_id as a string) is required so the local
+	# Player's MultiplayerSynchronizer path matches the server-side
+	# RemotePlayer's path — otherwise the server can't route our sync
+	# messages and logs "Node not found" errors.
+	var node_name := node.name
+	players.remove_child(node)
+	node.queue_free()
 	var local: Node3D = PLAYER_SCENE.instantiate()
-	local.name = "Local_%d" % my_id
+	local.name = node_name
 	players.add_child(local)
 	local.global_position = SPAWN_POSITION
-	# Remove the RemotePlayer that was meant to represent us locally.
-	node.queue_free()
 	print("[Client] swapped own RemotePlayer for local Player at %s" % SPAWN_POSITION)
 
 

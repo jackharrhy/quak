@@ -31,3 +31,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if name_label.text != player_name:
 		name_label.text = player_name
+	# Tilt the visual mesh by head_pitch so others can see roughly where this
+	# player is looking. Damped by 0.3 because the capsule body shouldn't go
+	# fully horizontal (Quake players don't have a real head bone).
+	$Mesh.rotation.x = head_pitch * 0.3
