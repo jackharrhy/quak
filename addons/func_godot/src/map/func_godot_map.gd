@@ -61,7 +61,11 @@ func clear_children() -> void:
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
-	EditorInterface.mark_scene_as_unsaved()
+	# EditorInterface is stripped from dedicated server builds; reference it
+	# indirectly so GDScript's parser doesn't choke on the unknown symbol.
+	# (Upstream func_godot bug — patched locally for now.)
+	if Engine.is_editor_hint():
+		Engine.get_singleton("EditorInterface").mark_scene_as_unsaved()
 
 ## Checks if a [QuakeMapFile] for the build process is provided and can be found.
 func verify() -> Error:

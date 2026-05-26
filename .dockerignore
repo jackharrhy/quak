@@ -1,0 +1,27 @@
+# Don't bloat the Docker build context with anything unneeded.
+
+# VCS
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Build outputs
+dist/
+.godot/
+
+# Vendored reference sources (Quake C code, cloned by hand for inspection)
+tmp/
+
+# Docs (not needed in the image)
+docs/
+
+# TrenchBroom autosaves
+maps/autosave/
+
+# IDE / OS noise
+.DS_Store
+.editorconfig
+
+# Markdown (not loaded by the game)
+*.md
