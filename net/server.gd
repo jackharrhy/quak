@@ -2,7 +2,11 @@ extends Node
 ## Server — runs only on dedicated server builds. Manages peer connections
 ## and player presence replication.
 
+const REMOTE_PLAYER_SCENE: PackedScene = preload("res://scenes/RemotePlayer.tscn")
+
 var peer: ENetMultiplayerPeer
+
+@onready var players: Node3D = $"../Players"
 
 
 func start() -> void:
@@ -20,10 +24,16 @@ func start() -> void:
 
 func _on_peer_connected(id: int) -> void:
 	_log("peer %d connected" % id)
+	var p := REMOTE_PLAYER_SCENE.instantiate()
+	p.name = str(id)
+	p.set_multiplayer_authority(id)
+	players.add_child(p, true)
 
 
 func _on_peer_disconnected(id: int) -> void:
 	_log("peer %d disconnected" % id)
+	if players.has_node(str(id)):
+		players.get_node(str(id)).queue_free()
 
 
 func _log(msg: String) -> void:
