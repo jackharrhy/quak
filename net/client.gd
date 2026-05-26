@@ -30,9 +30,11 @@ func start() -> void:
 
 func _on_connected() -> void:
 	print("[Client] connected to server")
+	Toast.show_message("Connected to %s" % Net.cli_host)
 
 
 func _on_connection_failed() -> void:
+	Toast.show_message("Server unreachable — playing offline")
 	_fallback_to_offline("connection failed (server unreachable)")
 
 
@@ -41,10 +43,12 @@ func _on_connect_timeout() -> void:
 	# still set and the connection is good — nothing to do.
 	if multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		return
+	Toast.show_message("Server unreachable — playing offline")
 	_fallback_to_offline("connection timed out after %.0fs" % CONNECT_TIMEOUT)
 
 
 func _on_server_disconnected() -> void:
+	Toast.show_message("Disconnected from server")
 	_fallback_to_offline("server disconnected mid-game")
 
 
