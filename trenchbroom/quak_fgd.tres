@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="FuncGodotFGDFile" format=3 uid="uid://c8v3nphrtm0f5"]
+
+[ext_resource type="Script" uid="uid://drlmgulwbjwqu" path="res://addons/func_godot/src/fgd/func_godot_fgd_file.gd" id="1_ac822"]
+[ext_resource type="Script" uid="uid://d1nwwgcrner8b" path="res://addons/func_godot/src/fgd/func_godot_fgd_point_class_display_descriptor.gd" id="1_wyg25"]
+[ext_resource type="Script" uid="uid://cxsqwtsqd8w33" path="res://addons/func_godot/src/fgd/func_godot_fgd_point_class.gd" id="2_257pe"]
+[ext_resource type="PackedScene" uid="uid://e4y56weigecs" path="res://scenes/Player.tscn" id="2_lqsan"]
+[ext_resource type="Resource" uid="uid://bdji3873bg32h" path="res://addons/func_godot/fgd/worldspawn.tres" id="3_worldspawn"]
+
+[sub_resource type="Resource" id="Resource_257pe"]
+script = ExtResource("2_257pe")
+scene_file = ExtResource("2_lqsan")
+classname = "player"
+metadata/_custom_type_script = "uid://cxsqwtsqd8w33"
+
+[resource]
+script = ExtResource("1_ac822")
+fgd_name = "QuakFGD"
+entity_definitions = Array[Resource]([ExtResource("3_worldspawn"), SubResource("Resource_257pe")])
+metadata/_custom_type_script = "uid://drlmgulwbjwqu"

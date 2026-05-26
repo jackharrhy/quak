@@ -3,3 +3,8 @@
 /android/
 
 .DS_Store
+
+tmp/
+
+maps/autosave/*
+!maps/autosave/.gdignore
