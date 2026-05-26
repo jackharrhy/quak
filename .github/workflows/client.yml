@@ -1,0 +1,107 @@
+name: Build client bundles
+
+# Build downloadable client binaries for Windows, Linux, and (universal)
+# macOS on every push to main and via manual dispatch. Artifacts are
+# uploaded per-platform and bundled into a single GitHub Release when the
+# workflow is triggered by a tag push (vX.Y.Z).
+#
+# Uses the same barichello/godot-ci:4.6 image as the server build so the
+# Godot version + export templates are guaranteed consistent.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.6"
+  EXPORT_NAME: quak
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.6
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            preset: "Windows Desktop"
+            # Exported as a single .exe; we zip the build dir for download.
+            output: quak.exe
+          - platform: linux
+            preset: "Linux/X11"
+            output: quak.x86_64
+          - platform: macos
+            preset: "macOS"
+            # Godot's macOS export produces a .zip containing a universal
+            # .app bundle (Intel + Apple Silicon in one binary).
+            output: quak.zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Godot export templates
+        # The barichello image ships templates at /root/... — move them into
+        # the locations Godot looks for at runtime.
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates
+          mkdir -p ~/.config
+          mv /root/.config/godot ~/.config/godot || true
+          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+
+      - name: Pre-import resources
+        # Run a headless import pass before the export. Without this, the
+        # first export tries to import resources mid-flight and can fail.
+        run: godot --headless --import || true
+
+      - name: Export
+        run: |
+          mkdir -p build/${{ matrix.platform }}
+          godot --headless --verbose \
+            --export-release "${{ matrix.preset }}" \
+            "build/${{ matrix.platform }}/${{ matrix.output }}"
+          ls -la build/${{ matrix.platform }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quak-${{ matrix.platform }}
+          path: build/${{ matrix.platform }}
+          retention-days: 30
+
+  release:
+    # Only attach builds to a GitHub Release when triggered by a `vX.Y.Z`
+    # tag push. Regular main pushes still produce per-job artifacts but
+    # don't create a Release.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Zip per-platform bundles
+        run: |
+          mkdir release
+          for dir in artifacts/*/; do
+            name="$(basename "$dir")"
+            (cd "$dir" && zip -r "../../release/${name}.zip" .)
+          done
+          ls -la release
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.zip
+          generate_release_notes: true
