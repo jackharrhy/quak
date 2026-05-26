@@ -71,3 +71,11 @@ func _parse_cli_args() -> void:
 
 func _has_cli_flag(flag: String) -> bool:
 	return flag in OS.get_cmdline_user_args()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F5:
+		if role == Role.CLIENT and is_offline:
+			print("[Net] F5 pressed; retrying connection")
+			Toast.show_message("Reconnecting…")
+			$Client.retry()

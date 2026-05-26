@@ -14,11 +14,19 @@ const SPAWN_POSITION: Vector3 = Vector3(0.25, 2.25, 6.25)
 
 var peer: ENetMultiplayerPeer
 
+# Incremented on every start() call. Captured by _on_connect_timeout
+# closure so stale timers from previous attempts don't trigger a fallback.
+var _attempt_id: int = 0
+
 @onready var spawner: MultiplayerSpawner = $"../PlayerSpawner"
 @onready var players: Node3D = $"../Players"
 
 
 func start() -> void:
+	_attempt_id += 1
+	var this_attempt := _attempt_id
+	Net.is_offline = false
+
 	if Net.cli_force_offline:
 		Net.is_offline = true
 		print("[Client] offline mode (forced via --offline)")
@@ -31,14 +39,31 @@ func start() -> void:
 		_fallback_to_offline("could not create client: %s" % error_string(err))
 		return
 	multiplayer.multiplayer_peer = peer
-	multiplayer.connected_to_server.connect(_on_connected)
-	multiplayer.connection_failed.connect(_on_connection_failed)
-	multiplayer.server_disconnected.connect(_on_server_disconnected)
-	spawner.spawned.connect(_on_player_spawned)
+	# Use is_connected() guards so retry() doesn't trigger Godot's
+	# "already connected" error. We connect once and leave the connections
+	# in place across retries; _fallback_to_offline doesn't disconnect them.
+	if not multiplayer.connected_to_server.is_connected(_on_connected):
+		multiplayer.connected_to_server.connect(_on_connected)
+	if not multiplayer.connection_failed.is_connected(_on_connection_failed):
+		multiplayer.connection_failed.connect(_on_connection_failed)
+	if not multiplayer.server_disconnected.is_connected(_on_server_disconnected):
+		multiplayer.server_disconnected.connect(_on_server_disconnected)
+	if not spawner.spawned.is_connected(_on_player_spawned):
+		spawner.spawned.connect(_on_player_spawned)
 	print("[Client] connecting to %s:%d..." % [Net.cli_host, Net.cli_port])
-	# ENet's built-in connect timeout is ~30s, which is far too long for a UX
-	# that drops into offline mode on failure. Start our own deadline.
-	get_tree().create_timer(CONNECT_TIMEOUT).timeout.connect(_on_connect_timeout)
+	# Capture this_attempt in the lambda so the timer bails if start() was
+	# called again before this one's timeout fires.
+	get_tree().create_timer(CONNECT_TIMEOUT).timeout.connect(
+		func() -> void: _on_connect_timeout(this_attempt)
+	)
+
+
+func retry() -> void:
+	# Tear down any offline-mode local player. start() will spawn a new one
+	# via _on_player_spawned (on success) or _fallback_to_offline (failure).
+	if players.has_node("Local_Offline"):
+		players.get_node("Local_Offline").queue_free()
+	start()
 
 
 func _on_connected() -> void:
@@ -54,18 +79,32 @@ func _on_connection_failed() -> void:
 	_fallback_to_offline("connection failed (server unreachable)")
 
 
-func _on_connect_timeout() -> void:
-	# If we connected successfully before the timeout, multiplayer_peer is
-	# still set and the connection is good — nothing to do.
+func _on_server_disconnected() -> void:
+	Toast.show_message("Disconnected from server")
+	_fallback_to_offline("server disconnected mid-game")
+
+
+func _on_connect_timeout(attempt: int) -> void:
+	# Stale timer from a previous start() call — ignore.
+	if attempt != _attempt_id:
+		return
+	# Already in offline mode — _on_connection_failed beat us to it.
+	if Net.is_offline:
+		return
+	# Connected successfully — nothing to do.
 	if multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		return
 	Toast.show_message("Server unreachable — playing offline")
 	_fallback_to_offline("connection timed out after %.0fs" % CONNECT_TIMEOUT)
 
 
-func _on_server_disconnected() -> void:
-	Toast.show_message("Disconnected from server")
-	_fallback_to_offline("server disconnected mid-game")
+func _fallback_to_offline(reason: String) -> void:
+	print("[Client] %s; entering offline mode" % reason)
+	Net.is_offline = true
+	if multiplayer.multiplayer_peer != null:
+		multiplayer.multiplayer_peer = null
+	peer = null
+	_spawn_local_offline_player()
 
 
 func _on_player_spawned(node: Node) -> void:
@@ -95,15 +134,6 @@ func _on_player_spawned(node: Node) -> void:
 	var chosen := await _load_or_prompt_name()
 	local.player_name = chosen
 	print("[Client] swapped own RemotePlayer for local Player at %s as '%s'" % [SPAWN_POSITION, chosen])
-
-
-func _fallback_to_offline(reason: String) -> void:
-	print("[Client] %s; entering offline mode" % reason)
-	Net.is_offline = true
-	if multiplayer.multiplayer_peer != null:
-		multiplayer.multiplayer_peer = null
-	peer = null
-	_spawn_local_offline_player()
 
 
 func _spawn_local_offline_player() -> void:
