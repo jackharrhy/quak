@@ -48,7 +48,11 @@ func _parse_cli_args() -> void:
 					i += 1
 			"--port":
 				if i + 1 < args.size():
-					cli_port = int(args[i + 1])
+					var port_str: String = args[i + 1]
+					if port_str.is_valid_int():
+						cli_port = int(port_str)
+					else:
+						push_warning("[Net] invalid --port value: %s" % port_str)
 					i += 1
 			"--name":
 				if i + 1 < args.size():
@@ -56,6 +60,9 @@ func _parse_cli_args() -> void:
 					i += 1
 			"--offline":
 				cli_force_offline = true
+			_:
+				if a.begins_with("--"):
+					push_warning("[Net] unknown CLI flag: %s" % a)
 		i += 1
 
 
