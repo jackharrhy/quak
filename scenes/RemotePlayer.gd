@@ -12,6 +12,17 @@ extends CharacterBody3D
 @onready var name_label: Label3D = $NameLabel
 
 
+func _enter_tree() -> void:
+	# The server names each spawned RemotePlayer instance after its owning
+	# peer ID (see net/server.gd::_on_peer_connected). Setting authority
+	# during _enter_tree (NOT _ready) is required for the spawn-time
+	# replication interface to assign a network ID without warnings.
+	# See: godotengine/godot PR #66794 and issue #75067.
+	var peer_id := int(name)
+	if peer_id > 0:
+		set_multiplayer_authority(peer_id)
+
+
 func _ready() -> void:
 	# RemotePlayer never simulates physics; its transform comes from sync.
 	set_physics_process(false)
