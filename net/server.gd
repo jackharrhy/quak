@@ -36,6 +36,16 @@ func _on_peer_disconnected(id: int) -> void:
 		players.get_node(str(id)).queue_free()
 
 
+@rpc("any_peer", "reliable")
+func report_version(version: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if version != Net.PROTOCOL_VERSION:
+		_log("peer %d protocol_version=%d MISMATCH (expected %d); kicking" % [sender, version, Net.PROTOCOL_VERSION])
+		multiplayer.multiplayer_peer.disconnect_peer(sender)
+	else:
+		_log("peer %d protocol_version=%d ok" % [sender, version])
+
+
 func _log(msg: String) -> void:
 	# ISO-8601 UTC timestamp, matches the spec's log format.
 	var t := Time.get_datetime_string_from_system(true)

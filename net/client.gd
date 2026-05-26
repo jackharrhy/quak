@@ -44,6 +44,9 @@ func start() -> void:
 func _on_connected() -> void:
 	print("[Client] connected to server")
 	Toast.show_message("Connected to %s" % Net.cli_host)
+	# Send our protocol version. If it doesn't match the server's, the
+	# server kicks us and we fall back to offline mode via _on_server_disconnected.
+	$"../Server".report_version.rpc_id(1, Net.PROTOCOL_VERSION)
 
 
 func _on_connection_failed() -> void:
