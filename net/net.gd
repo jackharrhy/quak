@@ -33,8 +33,7 @@ func _ready() -> void:
 	else:
 		role = Role.CLIENT
 		print("[Net] starting in CLIENT role")
-		if cli_force_offline:
-			print("[Net] --offline flag set; skipping connection")
+		$Client.start()
 
 
 func _parse_cli_args() -> void:

@@ -1,10 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://b1net0000001"]
+[gd_scene load_steps=4 format=3 uid="uid://b1net0000001"]
 
 [ext_resource type="Script" path="res://net/net.gd" id="1_net"]
 [ext_resource type="Script" path="res://net/server.gd" id="2_server"]
+[ext_resource type="Script" path="res://net/client.gd" id="3_client"]
 
 [node name="Net" type="Node"]
 script = ExtResource("1_net")
 
 [node name="Server" type="Node" parent="."]
 script = ExtResource("2_server")
+
+[node name="Client" type="Node" parent="."]
+script = ExtResource("3_client")
