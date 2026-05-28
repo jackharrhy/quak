@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://nnvtpmvthmmx"]
+
+[ext_resource type="Texture2D" uid="uid://pt8hu7a2rvy3" path="res://trenchbroom/textures/corn-grain.png" id="1_sswfg"]
+
+[resource]
+albedo_texture = ExtResource("1_sswfg")
+metallic_specular = 0.0
+texture_filter = 2
