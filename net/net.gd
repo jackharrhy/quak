@@ -18,7 +18,7 @@ var role: Role = Role.CLIENT
 var is_offline: bool = false
 
 # CLI overrides (parsed in _ready).
-var cli_host: String = SERVER_HOST
+var cli_host: String = SERVER_HOST if not OS.has_feature("editor") else "127.0.0.1"
 var cli_port: int = PORT
 var cli_name: String = ""
 var cli_force_offline: bool = false

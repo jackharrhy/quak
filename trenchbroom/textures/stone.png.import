@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8x255280dyyh"
 path.s3tc="res://.godot/imported/stone.png-0c7b5074e8b8e106a68e83de766b481e.s3tc.ctex"
+path.etc2="res://.godot/imported/stone.png-0c7b5074e8b8e106a68e83de766b481e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://trenchbroom/textures/stone.png"
-dest_files=["res://.godot/imported/stone.png-0c7b5074e8b8e106a68e83de766b481e.s3tc.ctex"]
+dest_files=["res://.godot/imported/stone.png-0c7b5074e8b8e106a68e83de766b481e.s3tc.ctex", "res://.godot/imported/stone.png-0c7b5074e8b8e106a68e83de766b481e.etc2.ctex"]
 
 [params]
 

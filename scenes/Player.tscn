@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://e4y56weigecs"]
+[gd_scene format=3 uid="uid://e4y56weigecs"]
 
 [ext_resource type="Script" uid="uid://b3esx1i2qrrlj" path="res://scenes/Player.gd" id="1_player"]
 
@@ -6,6 +6,12 @@
 size = Vector3(1.216, 2.128, 1.216)
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_p0vlq"]
+sky_top_color = Color(0.14702773, 0.40623835, 0.907033, 1)
+sky_horizon_color = Color(0.5243781, 0.67851835, 0.7786008, 1)
+sky_curve = 0.056839254
+ground_bottom_color = Color(0.1422041, 0.11781087, 0.09036202, 1)
+ground_horizon_color = Color(0.18302968, 0.18743867, 0.19626617, 1)
+ground_curve = 0.28840026
 
 [sub_resource type="Sky" id="Sky_v6fml"]
 sky_material = SubResource("ProceduralSkyMaterial_p0vlq")
@@ -13,6 +19,7 @@ sky_material = SubResource("ProceduralSkyMaterial_p0vlq")
 [sub_resource type="Environment" id="Environment_3li8b"]
 background_mode = 2
 sky = SubResource("Sky_v6fml")
+ssao_enabled = true
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_player"]
 properties/0/path = NodePath(".:position")
@@ -34,6 +41,7 @@ floor_block_on_wall = false
 floor_max_angle = 0.7953988
 floor_snap_length = 0.5
 script = ExtResource("1_player")
+kill_plane_y = -20.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1030469407]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.152, 0)
@@ -46,7 +54,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.836, 0)
 environment = SubResource("Environment_3li8b")
 fov = 74.0
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1028571299]
 replication_interval = 0.05
 delta_interval = 0.05
 replication_config = SubResource("SceneReplicationConfig_player")

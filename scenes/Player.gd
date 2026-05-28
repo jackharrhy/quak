@@ -67,6 +67,9 @@ const QU_TO_M: float = 0.038
 @export_group("Look")
 @export var sensitivity: float = 0.08
 
+@export_group("Gameplay")
+@export var kill_plane_y: float = -10.0
+
 # Networked state. The local-player MultiplayerSynchronizer pushes these
 # to the server, which mirrors them to other peers. `head_pitch` is sampled
 # from $Head.rotation.x in _physics_process / mouse handling.
@@ -76,6 +79,7 @@ const QU_TO_M: float = 0.038
 # --- State ---
 var wish_dir: Vector3 = Vector3.ZERO
 var wish_jump: bool = false
+var spawn_position: Vector3 = Vector3.ZERO
 
 @onready var head: Node3D = $Head
 
@@ -96,6 +100,8 @@ func _ready() -> void:
 		set_process(false)
 		set_physics_process(false)
 		set_process_input(false)
+
+	spawn_position = global_position
 
 
 func _input(event: InputEvent) -> void:
@@ -142,6 +148,10 @@ func _handle_camera_rotation(event: InputEventMouseMotion) -> void:
 func _physics_process(delta: float) -> void:
 	_process_input()
 	_process_movement(delta)
+
+	if global_position.y < kill_plane_y:
+		global_position = spawn_position
+		velocity = Vector3.ZERO
 
 
 func _process_input() -> void:
