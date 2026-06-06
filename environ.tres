@@ -18,3 +18,5 @@ ssao_enabled = true
 fog_enabled = true
 fog_light_color = Color(0.8321184, 0.8492375, 0.8758774, 1)
 fog_light_energy = 0.5
+fog_density = 0.001
+adjustment_enabled = true
