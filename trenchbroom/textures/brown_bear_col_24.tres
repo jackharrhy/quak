@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cyeb6bh5wmok5"]
+
+[ext_resource type="Texture2D" uid="uid://buy56dvudb50s" path="res://trenchbroom/textures/brown_bear_col_24.png" id="1_3pg1r"]
+
+[resource]
+albedo_texture = ExtResource("1_3pg1r")
+metallic_specular = 0.0
+texture_filter = 2

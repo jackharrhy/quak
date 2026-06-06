@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bof48fbe281kf"]
+
+[ext_resource type="Texture2D" uid="uid://834j2d85nd3d" path="res://trenchbroom/textures/0401.png" id="1_1xfax"]
+
+[resource]
+albedo_texture = ExtResource("1_1xfax")
+metallic_specular = 0.0
+texture_filter = 2
