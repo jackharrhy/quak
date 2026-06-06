@@ -1,25 +1,10 @@
 [gd_scene format=3 uid="uid://e4y56weigecs"]
 
 [ext_resource type="Script" uid="uid://b3esx1i2qrrlj" path="res://scenes/Player.gd" id="1_player"]
+[ext_resource type="Environment" uid="uid://cobv0pcs502qv" path="res://environ.tres" id="2_v6fml"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_player"]
 size = Vector3(1.216, 2.128, 1.216)
-
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_p0vlq"]
-sky_top_color = Color(0.14702773, 0.40623835, 0.907033, 1)
-sky_horizon_color = Color(0.5243781, 0.67851835, 0.7786008, 1)
-sky_curve = 0.056839254
-ground_bottom_color = Color(0.1422041, 0.11781087, 0.09036202, 1)
-ground_horizon_color = Color(0.18302968, 0.18743867, 0.19626617, 1)
-ground_curve = 0.28840026
-
-[sub_resource type="Sky" id="Sky_v6fml"]
-sky_material = SubResource("ProceduralSkyMaterial_p0vlq")
-
-[sub_resource type="Environment" id="Environment_3li8b"]
-background_mode = 2
-sky = SubResource("Sky_v6fml")
-ssao_enabled = true
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_player"]
 properties/0/path = NodePath(".:position")
@@ -51,7 +36,7 @@ shape = SubResource("BoxShape3D_player")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.836, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head" unique_id=184049099]
-environment = SubResource("Environment_3li8b")
+environment = ExtResource("2_v6fml")
 fov = 74.0
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1028571299]

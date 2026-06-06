@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://kig6leu2y68h"]
+
+[ext_resource type="Texture2D" uid="uid://dsafah5xxnrda" path="res://trenchbroom/textures/glass_block.jpg" id="1_hm8va"]
+
+[resource]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0.96862745)
+albedo_texture = ExtResource("1_hm8va")
+metallic_specular = 0.0
+texture_filter = 2
